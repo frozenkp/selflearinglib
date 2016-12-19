@@ -7,7 +7,7 @@ Dependency
 Run
 -------
     #first time
-    go get
+    go get github.com/semicircle/gocors
     go run ./data/grabdata.go
     #every time
     go run serverCORS.go
