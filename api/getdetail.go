@@ -27,6 +27,7 @@ type ArtInfo struct{
   People      string
   Place       string
   Description string
+  Year        string
   Items       []Item
 }
 
@@ -83,6 +84,7 @@ func (gdhandle Getdetail) ServeHTTP(w http.ResponseWriter, r *http.Request) {
           out.Data.Title=strings.TrimRight(artInfo,"\n")
         case 1:
           out.Data.Begin=strings.TrimRight(artInfo,"\n")
+          out.Data.Year=strings.Split(strings.TrimRight(artInfo,"\n"),"-")[0]
         case 2:
           out.Data.End=strings.TrimRight(artInfo,"\n")
         case 3:
