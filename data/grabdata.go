@@ -6,7 +6,7 @@ import(
   "io/ioutil"
   "encoding/json"
   "os"
-  //"os/exec"
+  "os/exec"
   "strings"
 )
 
@@ -23,8 +23,9 @@ func main(){
     if(u["status"].(float64)!=200){
       continue
     }
-    for b:=0 ; b<13 ; b++{
-      m:=u["data"].([]interface{})[b].(map[string]interface{})
+    mo:=u["data"].([]interface{})
+    for b:=0 ; b<len(mo) ; b++{
+      m:=mo[b].(map[string]interface{})
       url2:=fmt.Sprintf("http://hall.lib.nctu.edu.tw/api/artData/%s",m["serial"])
       resp2,_:=http.Get(url2)
       body2,_:=ioutil.ReadAll(resp2.Body)
@@ -33,19 +34,19 @@ func main(){
       json.Unmarshal(body2,&u2)
       mm2:=u2["data"].(map[string]interface{})
       mm:=u2["data"].(map[string]interface{})["items"].([]interface{})
-      //os.Mkdir(m["serial"].(string),1775)
+      os.Mkdir(m["serial"].(string),1775)
       ff,_:=os.OpenFile("./"+m["serial"].(string)+"/info.txt",os.O_WRONLY | os.O_CREATE, 0777)
       fmt.Fprintf(ff,"%s\n%s\n%s\n%s\n%s\n",mm2["title"],mm2["begin"],mm2["end"],mm2["people"],mm2["place"])
       ff.Close()
       ff,_=os.OpenFile("./"+m["serial"].(string)+"/description.txt",os.O_WRONLY | os.O_CREATE, 0777)
-      fmt.Fprintf(ff,"%s\n",mm2["description"])
+      fmt.Fprintf(ff,"%s",mm2["description"])
       ff.Close()
       ff,_=os.OpenFile("./"+m["serial"].(string)+"/item.csv",os.O_WRONLY | os.O_CREATE, 0777)
       var cover string
       for b:=0;b<len(mm);b++{
         mmm:=mm[b].(map[string]interface{})
-        /*o:=exec.Command("wget","-P","./"+m["serial"].(string),mmm["imgPath"].(string))
-        o.Run()*/
+        o:=exec.Command("wget","-P","./"+m["serial"].(string),mmm["imgPath"].(string))
+        o.Run()
         fmt.Fprintf(ff,"%s, %s, \n",mmm["title"],"http://140.113.66.249:65534/data/"+m["serial"].(string)+"/"+(strings.Split(mmm["imgPath"].(string),"/"))[4])
         if b==0 {
           cover="http://140.113.66.249:65534/data/"+m["serial"].(string)+"/"+(strings.Split(mmm["imgPath"].(string),"/"))[4]

@@ -68,11 +68,11 @@ func (gihandle Getinfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     f,_:=os.OpenFile("./data/info.csv",os.O_RDONLY,0777)
     defer f.Close()
     fbuf:=bufio.NewReader(f)
-    for i,times:=(page-1)*13,0 ; i<page*13 ; times++ {
+    for i,times:=(page-1)*50,0 ; i<page*50 ; times++ {
       info,err:=fbuf.ReadString('\n')
       //check eof
       if err==io.EOF {
-        if i==(page-1)*13{
+        if i==(page-1)*50{
           out.Status=404
           validPage=false
         }
