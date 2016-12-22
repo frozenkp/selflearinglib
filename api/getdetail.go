@@ -89,7 +89,7 @@ func (gdhandle Getdetail) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     defer f.Close()
     r=csv.NewReader(f)
     results,_:=r.ReadAll()
-    for row:=range result{
+    for row:=0;row<len(results);row++{
       item:=Item{results[row][0],results[row][1]}
       out.Data.Items=append(out.Data.Items,item)
     }
