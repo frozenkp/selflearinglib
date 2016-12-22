@@ -35,24 +35,34 @@ func main(){
       mm2:=u2["data"].(map[string]interface{})
       mm:=u2["data"].(map[string]interface{})["items"].([]interface{})
       os.Mkdir(m["serial"].(string),1775)
-      ff,_:=os.OpenFile("./"+m["serial"].(string)+"/info.txt",os.O_WRONLY | os.O_CREATE, 0777)
-      fmt.Fprintf(ff,"%s\n%s\n%s\n%s\n%s\n",mm2["title"],mm2["begin"],mm2["end"],mm2["people"],mm2["place"])
-      ff.Close()
-      ff,_=os.OpenFile("./"+m["serial"].(string)+"/description.txt",os.O_WRONLY | os.O_CREATE, 0777)
-      fmt.Fprintf(ff,"%s",mm2["description"])
+      ff,_:=os.OpenFile("./"+m["serial"].(string)+"/info.csv",os.O_WRONLY | os.O_CREATE, 0777)
+      fmt.Fprintf(ff,"\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",cd(mm2["title"]),cd(mm2["begin"]),cd(mm2["end"]),cd(mm2["people"]),cd(mm2["place"]),cd(mm2["description"]))
       ff.Close()
       ff,_=os.OpenFile("./"+m["serial"].(string)+"/item.csv",os.O_WRONLY | os.O_CREATE, 0777)
+      defer ff.Close()
       var cover string
-      for b:=0;b<len(mm);b++{
-        mmm:=mm[b].(map[string]interface{})
+      for c:=0;c<len(mm);c++{
+        mmm:=mm[c].(map[string]interface{})
         o:=exec.Command("wget","-P","./"+m["serial"].(string),mmm["imgPath"].(string))
         o.Run()
-        fmt.Fprintf(ff,"%s, %s, \n",mmm["title"],"http://140.113.66.249:65534/data/"+m["serial"].(string)+"/"+(strings.Split(mmm["imgPath"].(string),"/"))[4])
-        if b==0 {
+        fmt.Fprintf(ff,"\"%s\",\"%s\"\n",cd(mmm["title"]),"http://140.113.66.249:65534/data/"+m["serial"].(string)+"/"+(strings.Split(mmm["imgPath"].(string),"/"))[4])
+        if c==0 {
           cover="http://140.113.66.249:65534/data/"+m["serial"].(string)+"/"+(strings.Split(mmm["imgPath"].(string),"/"))[4]
         }
       }
-      fmt.Fprintf(f,"%s, %s, %s, %s, %s, \n",m["title"],m["serial"],cover,m["begin"],m["end"])
+      fmt.Fprintf(f,"\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",cd(m["title"]),m["serial"],cover,m["begin"],m["end"])
     }
   }
+}
+
+func cd(s interface{})string{
+  sn:=s.(string)
+  if strings.Contains(sn,"\""){
+    sS:=strings.Split(sn,"\"")
+    sn=sS[0]
+    for b:=1;b<len(sS);b++{
+      sn+=("\"\""+sS[b])
+    }
+  }
+  return sn
 }

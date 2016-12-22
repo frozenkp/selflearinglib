@@ -1,13 +1,13 @@
 package api
 
 import (
-  "os"
   "io"
+  "os"
   "strings"
   "fmt"
   "net/http"
   "encoding/json"
-  "bufio"
+  "encoding/csv"
   "strconv"
   "time"
 )
@@ -67,9 +67,9 @@ func (gihandle Getinfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     //get data
     f,_:=os.OpenFile("./data/info.csv",os.O_RDONLY,0777)
     defer f.Close()
-    fbuf:=bufio.NewReader(f)
+    r:=csv.NewReader(f)
     for i,times:=(page-1)*20,0 ; i<page*20 ; times++ {
-      info,err:=fbuf.ReadString('\n')
+      result,err:=r.Read()
       //check eof
       if err==io.EOF {
         if i==(page-1)*20{
@@ -81,7 +81,7 @@ func (gihandle Getinfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
       //check year
       if validYear {
-        year:=strings.TrimLeft((strings.Split((strings.Split(info,","))[3],"-")[0])," ")
+        year:=strings.TrimLeft((strings.Split(result[3],"-")[0])," ")
         if year != yearString {
           times--
           continue
@@ -94,11 +94,7 @@ func (gihandle Getinfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
       }else{
         //valid -> add to out
         i++;
-        infoS:=strings.Split(info,",")
-        for a:=0 ; a<len(infoS) ; a++ {
-          infoS[a]=strings.TrimLeft(infoS[a]," ")
-        }
-        data:=IndexInfo{infoS[0],infoS[1],infoS[2],infoS[3],infoS[4]}
+        data:=IndexInfo{result[0],result[1],result[2],result[3],result[4]}
         out.Data=append(out.Data,data)
       }
     }

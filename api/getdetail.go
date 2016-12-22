@@ -2,14 +2,12 @@ package api
 
 import (
   "os"
-  "io"
   "strings"
   "fmt"
   "net/http"
   "encoding/json"
-  "bufio"
-  "io/ioutil"
   "time"
+  "encoding/csv"
 )
 
 type Getdetail struct {
@@ -74,50 +72,25 @@ func (gdhandle Getdetail) ServeHTTP(w http.ResponseWriter, r *http.Request) {
   //process
   if serialValid {
     //get ArtInfo data
-    f,_:=os.OpenFile("./data/"+serialString+"/info.txt",os.O_RDONLY,0777)
+    f,_:=os.OpenFile("./data/"+serialString+"/info.csv",os.O_RDONLY,0777)
     defer f.Close()
-    fbuf:=bufio.NewReader(f)
-    for i:=0 ; i<5 ; i++ {
-      artInfo,_:=fbuf.ReadString('\n')
-      switch i {
-        case 0:
-          out.Data.Title=strings.TrimRight(artInfo,"\n")
-        case 1:
-          out.Data.Begin=strings.TrimRight(artInfo,"\n")
-          out.Data.Year=strings.Split(strings.TrimRight(artInfo,"\n"),"-")[0]
-        case 2:
-          out.Data.End=strings.TrimRight(artInfo,"\n")
-        case 3:
-          out.Data.People=strings.TrimRight(artInfo,"\n")
-        case 4:
-          out.Data.Place=strings.TrimRight(artInfo,"\n")
-      }
-    }
-    desInfo,_:=ioutil.ReadFile("./data/"+serialString+"/description.txt")
-    out.Data.Description=string(desInfo)
+    r:=csv.NewReader(f)
+    result,_:=r.Read()
+    out.Data.Title=result[0]
+    out.Data.Begin=result[1]
+    out.Data.Year=strings.Split(result[1],"-")[0]
+    out.Data.End=result[2]
+    out.Data.People=result[3]
+    out.Data.Place=result[4]
+    out.Data.Description=result[5]
 
     //get Item data
     f,_=os.OpenFile("./data/"+serialString+"/item.csv",os.O_RDONLY,0777)
     defer f.Close()
-    fbuf=bufio.NewReader(f)
-    for true {
-      itemInfo,err:=fbuf.ReadString('\n')
-      //check eof
-      if err==io.EOF {
-        if len(out.Data.Items)==0 {
-          out.Status=404
-        }
-        break
-      }
-
-      //split data
-      itemInfoS:=strings.Split(itemInfo,",")
-      for i:=0 ; i<len(itemInfoS) ; i++ {
-        itemInfoS[i]=strings.TrimLeft(itemInfoS[i]," ")
-      }
-
-      //assign data
-      item:=Item{itemInfoS[0],itemInfoS[1]}
+    r=csv.NewReader(f)
+    results,_:=r.ReadAll()
+    for row:=range result{
+      item:=Item{results[row][0],results[row][1]}
       out.Data.Items=append(out.Data.Items,item)
     }
   }
